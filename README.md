@@ -5,6 +5,8 @@ format.
 
 Full documentation can be found at [https://hexdocs.pm/sbom](https://hexdocs.pm/sbom).
 
+For a quick demo of how this might be used, check out [this blog post](https://blog.voltone.net/post/24).
+
 ## Installation
 
 To install the Mix task globally on your system, run `mix archive.install hex sbom`.
