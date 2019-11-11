@@ -1,10 +1,18 @@
 defmodule SBoM do
+  @moduledoc """
+  Collect dependency information for use in a Software Bill-of-Materials (SBOM).
+  """
+
   alias SBoM.Purl
+  alias SBoM.Cpe
 
   @doc """
   Builds a SBoM for the current Mix project. The result can be exported to
   CycloneDX XML format using the `SBoM.CycloneDX` module. Pass an environment
   of `nil` to include dependencies across all environments.
+
+  Wrap the call to this function with `Mix.Project.in_project/3,4` to select a
+  Mix project by path.
   """
   def components_for_project(environment \\ :prod) do
     Mix.Project.get!()
@@ -44,54 +52,54 @@ defmodule SBoM do
   end
 
   defp component_from_dep(%{scm: Hex.SCM}, opts) do
-    case opts do
-      %{hex: name, lock: lock, dest: dest} ->
-        version = elem(lock, 2)
-        sha256 = elem(lock, 3)
+    %{hex: name, lock: lock, dest: dest} = opts
+    version = elem(lock, 2)
+    sha256 = elem(lock, 3)
 
-        hex_metadata_path = Path.expand("hex_metadata.config", dest)
+    hex_metadata_path = Path.expand("hex_metadata.config", dest)
 
-        metadata =
-          case :file.consult(hex_metadata_path) do
-            {:ok, metadata} -> metadata
-            _ -> []
-          end
+    metadata =
+      case :file.consult(hex_metadata_path) do
+        {:ok, metadata} -> metadata
+        _ -> []
+      end
 
-        {_, licenses} = metadata |> List.keyfind("licenses", 0, {"licenses", []})
+    {_, description} = List.keyfind(metadata, "description", 0)
+    {_, licenses} = List.keyfind(metadata, "licenses", 0, {"licenses", []})
 
-        %{
-          type: "library",
-          name: name,
-          version: version,
-          purl: Purl.hex(name, version, opts[:repo]),
-          hashes: %{
-            "SHA-256" => sha256
-          },
-          licenses: licenses
-        }
-    end
+    %{
+      type: "library",
+      name: name,
+      version: version,
+      purl: Purl.hex(name, version, opts[:repo]),
+      cpe: Cpe.hex(name, version, opts[:repo]),
+      hashes: %{
+        "SHA-256" => sha256
+      },
+      description: description,
+      licenses: licenses
+    }
   end
 
   defp component_from_dep(%{scm: Mix.SCM.Git, app: app}, opts) do
-    case opts do
-      %{git: git, lock: lock} ->
-        version =
-          case opts[:tag] do
-            nil ->
-              elem(lock, 2)
+    %{git: git, lock: lock, dest: dest} = opts
 
-            tag ->
-              tag
-          end
+    version =
+      case opts[:tag] do
+        nil ->
+          elem(lock, 2)
 
-        %{
-          type: "library",
-          name: to_string(app),
-          version: version,
-          purl: Purl.git(to_string(app), git, version),
-          licenses: []
-        }
-    end
+        tag ->
+          tag
+      end
+
+    %{
+      type: "library",
+      name: to_string(app),
+      version: version,
+      purl: Purl.git(to_string(app), git, version),
+      licenses: []
+    }
   end
 
   defp component_from_dep(_dep, _opts), do: nil

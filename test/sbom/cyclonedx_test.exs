@@ -28,7 +28,7 @@ defmodule SBoM.CycloneDXTest do
       assert xml =~ ~s(<name>name</name>)
       assert xml =~ ~s(<version>0.0.1</version>)
       assert xml =~ ~s(<purl>pkg:hex/name@0.0.1</purl>)
-      assert xml =~ ~s(<licenses/>)
+      refute xml =~ ~s(<licenses>)
     end
 
     test "component with SPDX license" do

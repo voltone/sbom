@@ -22,6 +22,7 @@ defmodule Sample1.MixProject do
   defp deps do
     [
       {:hackney, "~> 1.15"},
+      {:sweet_xml, "~> 0.6.6"},
       {:jason, "~> 1.1", optional: true},
       {:ex_doc, "~> 0.21.2", only: :dev},
       {:meck, "~> 0.8.13", only: :test}
