@@ -12,18 +12,32 @@ defmodule SBoM.CycloneDX do
 
   If no serial number is specified a random UUID is generated.
   """
-  def bom(components, serial \\ nil)
 
-  def bom(components, nil) do
-    bom(components, uuid())
-  end
-
-  def bom(components, serial) do
+  def bom(components, options \\ []) do
     bom =
-      {:bom, [serialNumber: serial, xmlns: "http://cyclonedx.org/schema/bom/1.1"],
-       [
-         {:components, [], Enum.map(components, &component/1)}
-       ]}
+      case options[:schema] do
+        "1.1" ->
+          {:bom,
+           [
+             serialNumber: options[:serial] || uuid(),
+             xmlns: "http://cyclonedx.org/schema/bom/1.1"
+           ], [{:components, [], Enum.map(components, &component/1)}]}
+
+        _ ->
+          {:bom,
+           [
+             serialNumber: options[:serial] || uuid(),
+             xmlns: "http://cyclonedx.org/schema/bom/1.2"
+           ],
+           [
+             {:metadata, [],
+              [
+                {:timestamp, [], [[DateTime.utc_now() |> DateTime.to_iso8601()]]},
+                {:tools, [], [tool: [vendor: [["CycloneDX"]], name: [["Elixir module"]]]]}
+              ]},
+             {:components, [], Enum.map(components, &component/1)}
+           ]}
+      end
 
     :xmerl.export_simple([bom], :xmerl_xml)
   end
