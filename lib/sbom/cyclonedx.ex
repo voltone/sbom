@@ -42,6 +42,37 @@ defmodule SBoM.CycloneDX do
     :xmerl.export_simple([bom], :xmerl_xml)
   end
 
+  def bom_json(components, opts) do
+    %{
+      bomFormat: "CycloneDX",
+      specVersion: options[:schema],
+      serialNumber: options[:serial] || uuid(),
+      version: "1",
+      metadata: _metadata(),
+      components: _components(components)
+    }
+  end
+
+  def _metadata do
+    %{
+      timestamp: DateTime.utc_now() |> DateTime.to_iso8601(),
+      tools: [%{name: "SBoM Mix task for Elixir"}]
+    }
+  end
+
+  defp _components(components) do
+    Enum.map(components, fn component ->
+      %{
+        type: component.type,
+        name: component.name,
+        version: component.version,
+        description: component.description,
+        licenses: Enum.map(component.licenses, fn l -> %{license: %{id: l}} end),
+        purl: component.purl
+      }
+    end)
+  end
+
   defp component(component) do
     {:component, [type: component.type], component_fields(component)}
   end
