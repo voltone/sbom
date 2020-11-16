@@ -82,7 +82,7 @@ defmodule SBoM do
   end
 
   defp component_from_dep(%{scm: Mix.SCM.Git, app: app}, opts) do
-    %{git: git, lock: lock, dest: dest} = opts
+    %{git: git, lock: lock, dest: _dest} = opts
 
     version =
       case opts[:tag] do

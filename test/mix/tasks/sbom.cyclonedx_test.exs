@@ -26,4 +26,15 @@ defmodule Mix.Tasks.Sbom.CyclonedxTest do
       assert_received {:mix_shell, :info, ["* creating bom.xml"]}
     end)
   end
+
+  test "schema validation" do
+    Mix.Project.in_project(__MODULE__, "test/fixtures/sample1", fn _mod ->
+      Mix.Task.rerun("sbom.cyclonedx", ["-d", "-f", "-s", "1.1"])
+      assert_received {:mix_shell, :info, ["* creating bom.xml"]}
+
+      assert_raise Mix.Error, "Give correct cyclonedx schema version to continue.", fn ->
+        Mix.Task.rerun("sbom.cyclonedx", ["-d", "-f", "-s", "invalid"])
+      end
+    end)
+  end
 end
