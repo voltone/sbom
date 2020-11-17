@@ -63,16 +63,9 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
   defp generate_bom(output_path, environment, opts) do
     case SBoM.components_for_project(environment) do
       {:ok, components} ->
-        case opts[:format] do
-          nil ->
-            xml = SBoM.CycloneDX.bom(components)
-            create_file(output_path, xml, force: opts[:force])
+        iodata = SBoM.CycloneDX.bom(components, opts)
 
-          :json ->
-            IO.inspect("requesting json")
-            json = SBoM.CycloneDX.bom_json(components)
-            create_file(output_path, json, force: opts[:force])
-        end
+        create_file(output_path, iodata, force: opts[:force])
 
       {:error, :unresolved_dependency} ->
         dependency_error()
