@@ -49,6 +49,8 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
     opts =
       if String.ends_with?(output_path, ".json") do
         Keyword.put(opts, :format, :json)
+      else
+        opts
       end
 
     apps = Mix.Project.apps_paths()
