@@ -9,13 +9,13 @@ defmodule SBoM.CycloneDX.Json do
       specVersion: opts[:schema] || "1.2",
       serialNumber: opts[:serial] || SBoM.CycloneDX.uuid(),
       version: "1",
-      metadata: _metadata(),
+      metadata: metadata(),
       components: components(components)
     }
     |> Jason.encode_to_iodata!(pretty: true)
   end
 
-  defp _metadata do
+  defp metadata do
     %{
       timestamp: DateTime.utc_now() |> DateTime.to_iso8601(),
       tools: [%{name: "SBoM Mix task for Elixir"}]
