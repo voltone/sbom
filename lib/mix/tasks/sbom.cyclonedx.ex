@@ -46,6 +46,13 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
 
     environment = (!opts[:dev] && :prod) || nil
 
+    opts =
+      if String.ends_with?(output_path, ".json") do
+        Keyword.put(opts, :format, :json)
+      else
+        opts
+      end
+
     apps = Mix.Project.apps_paths()
 
     if opts[:recurse] && apps do
@@ -58,8 +65,9 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
   defp generate_bom(output_path, environment, opts) do
     case SBoM.components_for_project(environment) do
       {:ok, components} ->
-        xml = SBoM.CycloneDX.bom(components, opts)
-        create_file(output_path, xml, force: opts[:force])
+        iodata = SBoM.CycloneDX.bom(components, opts)
+
+        create_file(output_path, iodata, force: opts[:force])
 
       {:error, :unresolved_dependency} ->
         dependency_error()
