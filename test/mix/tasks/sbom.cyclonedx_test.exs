@@ -37,4 +37,12 @@ defmodule Mix.Tasks.Sbom.CyclonedxTest do
       end
     end)
   end
+
+  test "json version support  validation" do
+    Mix.Project.in_project(__MODULE__, "test/fixtures/sample1", fn _mod ->
+      assert_raise Mix.Error, "JSON is NOT supported for version 1.1 of cyclonedx.", fn ->
+        Mix.Task.rerun("sbom.cyclonedx", ["-d", "-f", "-s", "1.1", "-o", "bom.json"])
+      end
+    end)
+  end
 end

@@ -42,18 +42,16 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
       )
 
     output_path = opts[:output] || @default_path
-    valiate_schema(opts)
 
     environment = (!opts[:dev] && :prod) || nil
 
-    opts =
-      if String.ends_with?(output_path, ".json") do
-        Keyword.put(opts, :format, :json)
-      else
-        opts
-      end
-
     apps = Mix.Project.apps_paths()
+
+    opts =
+      opts
+      |> add_output_format(output_path)
+      |> validate_schema_version()
+      |> validate_json_schema()
 
     if opts[:recurse] && apps do
       Enum.each(apps, &generate_bom(&1, output_path, environment, opts[:force]))
@@ -80,13 +78,21 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
     end)
   end
 
+  defp add_output_format(opts, output_path) do
+    if String.ends_with?(output_path, ".json") do
+      Keyword.put(opts, :format, :json)
+    else
+      opts
+    end
+  end
+
   defp dependency_error do
     shell = Mix.shell()
     shell.error("Unchecked dependencies; please run `mix deps.get`")
     Mix.raise("Can't continue due to errors on dependencies")
   end
 
-  defp valiate_schema(opts) do
+  defp validate_schema_version(opts) do
     schema_versions = ["1.2", "1.1"]
 
     if opts[:schema] && opts[:schema] not in schema_versions do
@@ -99,6 +105,20 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
       )
 
       Mix.raise("Give correct cyclonedx schema version to continue.")
+    else
+      opts
+    end
+  end
+
+  defp validate_json_schema(opts) do
+    if opts[:format] == :json and opts[:schema] == "1.1" do
+      shell = Mix.shell()
+
+      shell.error("Json is not supported in version 1.1")
+
+      Mix.raise("JSON is NOT supported for version 1.1 of cyclonedx.")
+    else
+      opts
     end
   end
 end
