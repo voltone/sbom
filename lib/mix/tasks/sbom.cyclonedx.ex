@@ -114,9 +114,9 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
     if opts[:format] == :json and opts[:schema] == "1.1" do
       shell = Mix.shell()
 
-      shell.error("Json is not supported in version 1.1")
+      shell.error("JSON is not supported in version 1.1")
 
-      Mix.raise("JSON is NOT supported for version 1.1 of cyclonedx.")
+      Mix.raise("JSON is NOT supported for version 1.1 of CycloneDX.")
     else
       opts
     end
