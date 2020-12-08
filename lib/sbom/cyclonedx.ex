@@ -1,6 +1,6 @@
 defmodule SBoM.CycloneDX do
   @moduledoc """
-  Generate a CycloneDX SBoM in XML and JSON format.
+  Generate a CycloneDX SBoM in XML or JSON format.
   """
 
   alias SBoM.CycloneDX.{Json, Xml}

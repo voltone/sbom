@@ -101,7 +101,9 @@ defmodule SBoM.CycloneDXTest do
         |> bom(format: :json)
         |> to_string()
 
-      assert json =~ "{\n  \"bomFormat\": \"CycloneDX\""
+      decoded_json = Jason.decode!(json)
+
+      assert decoded_json["bomFormat"] == "CycloneDX"
     end
 
     test "generates CycloneDX in xml format without specified format" do
@@ -138,7 +140,9 @@ defmodule SBoM.CycloneDXTest do
         |> bom(format: :json)
         |> to_string()
 
-      assert json =~ "\"licenses\": []"
+      components = decoded_components(json)
+
+      assert components["licenses"] == []
     end
 
     test "component with SPDX license" do
@@ -156,7 +160,9 @@ defmodule SBoM.CycloneDXTest do
         |> bom(format: :json)
         |> to_string()
 
-      assert json =~ "\"license\": {\n            \"id\": \"Apache-2.0\"\n"
+      components = decoded_components(json)
+
+      assert components["licenses"] == [%{"license" => %{"id" => "Apache-2.0"}}]
     end
 
     test "components with other license" do
@@ -174,7 +180,16 @@ defmodule SBoM.CycloneDXTest do
         |> bom(format: :json)
         |> to_string()
 
-      assert json =~ "\"license\": {\n            \"name\": \"some other name\"\n"
+      components = decoded_components(json)
+
+      assert components["licenses"] == [%{"license" => %{"name" => "some other name"}}]
     end
+  end
+
+  defp decoded_components(json) do
+    decoded_json = Jason.decode!(json)
+
+    [components] = decoded_json["components"]
+    components
   end
 end
