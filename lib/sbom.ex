@@ -64,7 +64,7 @@ defmodule SBoM do
         _ -> []
       end
 
-    {_, description} = List.keyfind(metadata, "description", 0)
+    {_, description} = List.keyfind(metadata, "description", 0, {"description", ""})
     {_, licenses} = List.keyfind(metadata, "licenses", 0, {"licenses", []})
 
     %{
