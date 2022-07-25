@@ -17,7 +17,7 @@ Mix task available for that project only:
 ```elixir
 def deps do
   [
-    {:sbom, "~> 0.5.1", only: :dev, runtime: false}
+    {:sbom, "~> 0.6", only: :dev, runtime: false}
   ]
 end
 ```
