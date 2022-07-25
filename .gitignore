@@ -28,3 +28,6 @@ bom.xml
 # Ignore dependency artifacts from test fixtures
 /test/fixtures/*/deps/
 /test/fixtures/*/_build/
+
+mix.lock
+
