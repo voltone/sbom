@@ -408,6 +408,7 @@ defmodule SBoM.License do
 
   def parse(name) do
     id = spdx_id(name)
+
     if id do
       %{license: %{id: id}}
     else
