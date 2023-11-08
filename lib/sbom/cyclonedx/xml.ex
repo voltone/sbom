@@ -8,7 +8,9 @@ defmodule SBoM.CycloneDX.XML do
       {:bom, header(opts[:schema], opts[:serial]), content(opts[:schema], components)}
     ]
 
-    :xmerl.export_simple(bom, :xmerl_xml)
+    bom
+    |> :xmerl.export_simple(:xmerl_xml)
+    |> to_string()
   end
 
   defp header(version, serial) do
