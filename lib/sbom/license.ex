@@ -404,6 +404,17 @@ defmodule SBoM.License do
     "zlib-acknowledgement" => "zlib-acknowledgement"
   }
 
+  def parse(licenses) when is_list(licenses), do: Enum.map(licenses, &parse/1)
+
+  def parse(name) do
+    id = spdx_id(name)
+    if id do
+      %{license: %{id: id}}
+    else
+      %{license: %{name: name}}
+    end
+  end
+
   def spdx_id(id) do
     @spdx_id[normalize(id)]
   end

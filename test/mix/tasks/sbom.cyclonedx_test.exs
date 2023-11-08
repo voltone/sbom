@@ -1,5 +1,6 @@
-defmodule Mix.Tasks.Sbom.CyclonedxTest do
+defmodule Mix.Tasks.SBoM.CyclonedxTest do
   use ExUnit.Case
+  alias SBoM.UUID
 
   setup_all do
     Mix.shell(Mix.Shell.Process)
@@ -36,5 +37,15 @@ defmodule Mix.Tasks.Sbom.CyclonedxTest do
         Mix.Task.rerun("sbom.cyclonedx", ["-d", "-f", "-s", "invalid"])
       end
     end)
+  end
+
+  test "json write" do
+    file_name = "#{UUID.generate()}.json"
+
+    Mix.Task.rerun("sbom.cyclonedx", ["-d", "-f", "-e", "json", "-o", file_name])
+    expected_msg = "* creating #{file_name}"
+    assert_received {:mix_shell, :info, [^expected_msg]}
+    assert %{"bomFormat" => "CycloneDX", "components" => _} = Jason.decode!(File.read!(file_name))
+    assert File.rm!(file_name)
   end
 end

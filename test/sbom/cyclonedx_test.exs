@@ -7,7 +7,7 @@ defmodule SBoM.CycloneDXTest do
   describe "bom" do
     test "serial number UUID generation" do
       assert [] |> bom() |> to_string() =~
-               ~r(serialNumber="[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+               ~r(serialNumber="urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
     end
 
     test "component without license" do
@@ -39,7 +39,7 @@ defmodule SBoM.CycloneDXTest do
             name: "name",
             version: "0.0.1",
             purl: "pkg:hex/name@0.0.1",
-            licenses: ["Apache-2.0"]
+            licenses: [%{license: %{id: "Apache-2.0"}}]
           }
         ]
         |> bom()
@@ -56,7 +56,7 @@ defmodule SBoM.CycloneDXTest do
             name: "name",
             version: "0.0.1",
             purl: "pkg:hex/name@0.0.1",
-            licenses: ["Some other license"]
+            licenses: [%{license: %{name: "Some other license"}}]
           }
         ]
         |> bom()
@@ -74,9 +74,12 @@ defmodule SBoM.CycloneDXTest do
             version: "0.0.1",
             purl: "pkg:hex/name@0.0.1",
             licenses: [],
-            hashes: %{
-              "SHA-256" => "fdf843bca858203ae1de16da2ee206f53416bbda5dc8c9e78f43243de4bc3afe"
-            }
+            hashes: [
+              %{
+                alg: "SHA-256",
+                content: "fdf843bca858203ae1de16da2ee206f53416bbda5dc8c9e78f43243de4bc3afe"
+              }
+            ]
           }
         ]
         |> bom()
