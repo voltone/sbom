@@ -1,11 +1,12 @@
 defmodule SBoM.CycloneDX.JSON do
   alias SBoM.UUID
+  alias SBoM.JsonEncoder
 
   def bom(components, opts) do
     components
     |> base(opts)
     |> Map.merge(metadata(opts[:schema]))
-    |> Jason.encode!()
+    |> JsonEncoder.encode()
   end
 
   defp base(components, opts) do

@@ -45,7 +45,7 @@ defmodule Mix.Tasks.SBoM.CyclonedxTest do
     Mix.Task.rerun("sbom.cyclonedx", ["-d", "-f", "-e", "json", "-o", file_name])
     expected_msg = "* creating #{file_name}"
     assert_received {:mix_shell, :info, [^expected_msg]}
-    assert %{"bomFormat" => "CycloneDX", "components" => _} = Jason.decode!(File.read!(file_name))
+    assert File.read!(file_name) =~ ~s/"bomFormat\":\"CycloneDX\",\"specVersion\":\"1.2\"/
     assert File.rm!(file_name)
   end
 end
