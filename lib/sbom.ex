@@ -5,6 +5,7 @@ defmodule SBoM do
 
   alias SBoM.Purl
   alias SBoM.Cpe
+  alias SBoM.License
 
   @doc """
   Builds a SBoM for the current Mix project. The result can be exported to
@@ -66,18 +67,22 @@ defmodule SBoM do
 
     {_, description} = List.keyfind(metadata, "description", 0, {"description", ""})
     {_, licenses} = List.keyfind(metadata, "licenses", 0, {"licenses", []})
+    description = description |> String.split("\n", parts: 2) |> List.first()
 
     %{
       type: "library",
       name: name,
       version: version,
+      description: description,
       purl: Purl.hex(name, version, opts[:repo]),
       cpe: Cpe.hex(name, version, opts[:repo]),
-      hashes: %{
-        "SHA-256" => sha256
-      },
-      description: description,
-      licenses: licenses
+      licenses: License.parse(licenses),
+      hashes: [
+        %{
+          alg: "SHA-256",
+          content: sha256
+        }
+      ]
     }
   end
 
