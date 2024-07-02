@@ -18,7 +18,7 @@ defmodule SBoM do
     Mix.Project.get!()
 
     {deps, not_ok} =
-      Mix.Dep.load_on_environment(env: environment)
+      Mix.Dep.Converger.converge(env: environment)
       |> Enum.split_with(&ok?/1)
 
     case not_ok do
