@@ -4,7 +4,10 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
   use Mix.Task
   import Mix.Generator
 
-  @default_path "bom.xml"
+  @default_encoding "xml"
+  @default_filename "bom"
+  @valid_schema_versions ["1.1", "1.2"]
+  @default_schema "1.2"
 
   @moduledoc """
   Generates a Software Bill-of-Materials (SBoM) in CycloneDX format.
@@ -12,7 +15,7 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
   ## Options
 
     * `--output` (`-o`): the full path to the SBoM output file (default:
-      #{@default_path})
+      #{@default_filename}.#{@default_encoding})
     * `--force` (`-f`): overwrite existing files without prompting for
       confirmation
     * `--dev` (`-d`): include dependencies for non-production environments
@@ -31,19 +34,24 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
     {opts, _args} =
       OptionParser.parse!(
         all_args,
-        aliases: [o: :output, f: :force, d: :dev, r: :recurse, s: :schema],
+        aliases: [o: :output, f: :force, d: :dev, r: :recurse, s: :schema, e: :encoding],
         strict: [
           output: :string,
           force: :boolean,
           dev: :boolean,
           recurse: :boolean,
-          schema: :string
+          schema: :string,
+          encoding: :string
         ]
       )
 
-    output_path = opts[:output] || @default_path
-    valiate_schema(opts)
+    opts =
+      opts
+      |> Keyword.put_new(:encoding, @default_encoding)
+      |> Keyword.put_new(:schema, @default_schema)
 
+    output_path = opts[:output] || @default_filename <> "." <> opts[:encoding]
+    validate_schema(opts[:schema])
     environment = (!opts[:dev] && :prod) || nil
 
     apps = Mix.Project.apps_paths()
@@ -58,8 +66,8 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
   defp generate_bom(output_path, environment, opts) do
     case SBoM.components_for_project(environment) do
       {:ok, components} ->
-        xml = SBoM.CycloneDX.bom(components, opts)
-        create_file(output_path, xml, force: opts[:force])
+        bom = SBoM.CycloneDX.bom(components, opts)
+        create_file(output_path, bom, force: opts[:force])
 
       {:error, :unresolved_dependency} ->
         dependency_error()
@@ -78,19 +86,21 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
     Mix.raise("Can't continue due to errors on dependencies")
   end
 
-  defp valiate_schema(opts) do
-    schema_versions = ["1.2", "1.1"]
+  defp validate_schema(nil) do
+    :ok
+  end
 
-    if opts[:schema] && opts[:schema] not in schema_versions do
-      shell = Mix.shell()
+  defp validate_schema(schema) when schema in @valid_schema_versions do
+    :ok
+  end
 
-      shell.error(
-        "invalid cyclonedx schema version, available versions are #{
-          schema_versions |> Enum.join(", ")
-        }"
-      )
+  defp validate_schema(_schema) do
+    shell = Mix.shell()
 
-      Mix.raise("Give correct cyclonedx schema version to continue.")
-    end
+    shell.error(
+      "invalid cyclonedx schema version, available versions are #{@valid_schema_versions |> Enum.join(", ")}"
+    )
+
+    Mix.raise("Give correct cyclonedx schema version to continue.")
   end
 end

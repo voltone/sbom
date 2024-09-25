@@ -29,5 +29,5 @@ defmodule SBoM.Cpe do
     "cpe:2.3:a:kbrw:sweet_xml:#{version}:*:*:*:*:*:*:*"
   end
 
-  defp do_hex(_name, _version, _repo), do: nil
+  defp do_hex(_name, _version, _repo), do: ""
 end

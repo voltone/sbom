@@ -39,7 +39,7 @@ defmodule SBoMTest do
                  Enum.find(list, &match?(%{name: "sweet_xml"}, &1))
 
         assert %{
-                 licenses: ["Apache 2.0"],
+                 licenses: [%{license: %{id: "Apache-2.0"}}],
                  description: "ExDoc is a documentation generation tool for Elixir"
                } = Enum.find(list, &match?(%{name: "ex_doc"}, &1))
       end)
