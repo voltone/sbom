@@ -18,7 +18,7 @@ defmodule SBoM do
     Mix.Project.get!()
 
     {deps, not_ok} =
-      Mix.Dep.load_on_environment(env: environment)
+      load_env_deps(env: environment)
       |> Enum.split_with(&ok?/1)
 
     case not_ok do
@@ -32,6 +32,17 @@ defmodule SBoM do
 
       _ ->
         {:error, :unresolved_dependency}
+    end
+  end
+
+  if Version.match?(System.version(), ">= 1.16.0") do
+    defp load_env_deps(options) do
+      Mix.Dep.Converger.converge(options)
+    end
+  else
+    defp load_env_deps(options) do
+      # Removed in Elixir >= 1.16.0
+      Mix.Dep.load_on_environment(options)
     end
   end
 
