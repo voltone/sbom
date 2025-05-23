@@ -14,57 +14,72 @@ defmodule SBoM.CycloneDX do
   """
 
   def bom(components, options \\ []) do
+    schema = options[:schema]
+
     bom =
-      case options[:schema] do
+      case schema do
         "1.1" ->
-          {:bom,
+          {:bom, bom_attributes(options, schema),
            [
-             serialNumber: options[:serial] || uuid(),
-             xmlns: "http://cyclonedx.org/schema/bom/1.1"
-           ], [{:components, [], Enum.map(components, &component/1)}]}
+             components(components, schema)
+           ]}
 
         _ ->
-          {:bom,
+          {:bom, bom_attributes(options, schema),
            [
-             serialNumber: options[:serial] || uuid(),
-             xmlns: "http://cyclonedx.org/schema/bom/1.2"
-           ],
-           [
-             {:metadata, [],
-              [
-                {:timestamp, [], [[DateTime.utc_now() |> DateTime.to_iso8601()]]},
-                {:tools, [], [tool: [name: [["SBoM Mix task for Elixir"]]]]}
-              ]},
-             {:components, [], Enum.map(components, &component/1)}
+             metadata(options, schema),
+             components(components, schema)
            ]}
       end
 
     :xmerl.export_simple([bom], :xmerl_xml)
   end
 
-  defp component(component) do
-    {:component, [type: component.type], component_fields(component)}
+  defp bom_attributes(options, schema) do
+    [
+      serialNumber: options[:serial] || urn_uuid(),
+      xmlns: "http://cyclonedx.org/schema/bom/#{schema}"
+    ]
   end
 
-  defp component_fields(component) do
-    component |> Enum.map(&component_field/1) |> Enum.reject(&is_nil/1)
+  defp metadata(_options, _schema) do
+    {:metadata, [],
+     [
+       {:timestamp, [], [[DateTime.utc_now() |> DateTime.to_iso8601()]]},
+       {:tools, [], [tool: [name: [["SBoM Mix task for Elixir"]]]]}
+     ]}
+  end
+
+  defp components(components, schema) do
+    {:components, [], Enum.map(components, &component(&1, schema))}
+  end
+
+  defp component(component, schema) do
+    {:component, [type: component.type], component_fields(component, schema)}
+  end
+
+  defp component_fields(component, schema) do
+    [:name, :version, :description, :hashes, :licenses, :cpe, :purl]
+    |> Enum.map(&component_field(&1, component[&1], schema))
+    |> Enum.reject(&is_nil/1)
   end
 
   @simple_fields [:name, :version, :purl, :cpe, :description]
 
-  defp component_field({field, value}) when field in @simple_fields and not is_nil(value) do
+  defp component_field(field, value, _schema)
+       when field in @simple_fields and not is_nil(value) do
     {field, [], [[value]]}
   end
 
-  defp component_field({:hashes, hashes}) when is_map(hashes) do
+  defp component_field(:hashes, hashes, _schema) when is_map(hashes) do
     {:hashes, [], Enum.map(hashes, &hash/1)}
   end
 
-  defp component_field({:licenses, [_ | _] = licenses}) do
+  defp component_field(:licenses, [_ | _] = licenses, _schema) do
     {:licenses, [], Enum.map(licenses, &license/1)}
   end
 
-  defp component_field(_other), do: nil
+  defp component_field(_field, _value, _schema), do: nil
 
   defp license(name) do
     # If the name is a recognized SPDX license ID, or if we can turn it into
@@ -87,6 +102,8 @@ defmodule SBoM.CycloneDX do
   defp hash({algorithm, hash}) do
     {:hash, [alg: algorithm], [[hash]]}
   end
+
+  defp urn_uuid(), do: "urn:uuid:#{uuid()}"
 
   defp uuid() do
     [

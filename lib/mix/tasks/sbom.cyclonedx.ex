@@ -4,7 +4,15 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
   use Mix.Task
   import Mix.Generator
 
+  @schema_versions ["1.6", "1.5", "1.4", "1.3", "1.2", "1.1"]
+
   @default_path "bom.xml"
+  @default_schema "1.6"
+
+  @default_opts [
+    output: @default_path,
+    schema: @default_schema
+  ]
 
   @moduledoc """
   Generates a Software Bill-of-Materials (SBoM) in CycloneDX format.
@@ -21,7 +29,8 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
     * `--recurse` (`-r`): in an umbrella project, generate individual output
       files for each application, rather than a single file for the entire
       project
-    * `--schema` (`-s`): schema version to be used, defaults to "1.2".
+    * `--schema` (`-s`): schema version to be used, defaults to
+      "@default_schema".
 
   """
 
@@ -41,8 +50,12 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
         ]
       )
 
-    output_path = opts[:output] || @default_path
-    valiate_schema(opts)
+    opts =
+      @default_opts
+      |> Keyword.merge(opts)
+
+    output_path = opts[:output]
+    validate_schema(opts[:schema])
 
     environment = (!opts[:dev] && :prod) || nil
 
@@ -78,16 +91,12 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
     Mix.raise("Can't continue due to errors on dependencies")
   end
 
-  defp valiate_schema(opts) do
-    schema_versions = ["1.2", "1.1"]
-
-    if opts[:schema] && opts[:schema] not in schema_versions do
+  defp validate_schema(schema) do
+    if schema not in @schema_versions do
       shell = Mix.shell()
 
       shell.error(
-        "invalid cyclonedx schema version, available versions are #{
-          schema_versions |> Enum.join(", ")
-        }"
+        "invalid cyclonedx schema version, available versions are #{@schema_versions |> Enum.join(", ")}"
       )
 
       Mix.raise("Give correct cyclonedx schema version to continue.")
