@@ -4,7 +4,7 @@ defmodule SBoM.LicenseTest do
 
   doctest SBoM.License
 
-  test :spdx_id do
+  test "spdx_id" do
     assert "0BSD" = spdx_id("0BSD")
     assert "MIT" = spdx_id("mit")
     assert "BSD-3-Clause" = spdx_id("BSD 3-clause")
@@ -17,5 +17,15 @@ defmodule SBoM.LicenseTest do
     assert "MIT" = spdx_id("MIT license")
     assert "MPL-2.0" = spdx_id("Mozilla Public License version 2.0")
     assert "MPL-2.0" = spdx_id("Mozilla Public License,  version 2.0")
+  end
+
+  test "parse" do
+    assert %{license: %{id: "Apache-2.0"}} == parse("Apache-2.0")
+    assert %{license: %{name: "other license"}} == parse("other license")
+
+    assert [
+             %{license: %{name: "other license"}},
+             %{license: %{id: "Apache-2.0"}}
+           ] == parse(["other license", "Apache-2.0"])
   end
 end
