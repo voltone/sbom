@@ -7,7 +7,7 @@ defmodule SBoM.CycloneDXTest do
   describe "bom" do
     test "serial number UUID generation" do
       assert [] |> bom() |> to_string() =~
-               ~r(serialNumber="[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+               ~r(serialNumber="urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
     end
 
     test "component without license" do
