@@ -21,7 +21,7 @@ defmodule SBoM do
   Wrap the call to this function with `Mix.Project.in_project/3,4` to select a
   Mix project by path.
   """
-  def components_for_project(type, environment \\ :prod) do
+  def components_for_project(classification, environment \\ :prod) do
     Mix.Project.get!()
 
     {deps, not_ok} =
@@ -36,7 +36,7 @@ defmodule SBoM do
           |> Enum.reject(&is_nil/1)
 
         project =
-          component_from_project(Mix.Project.config(), type)
+          component_from_project(Mix.Project.config(), classification)
 
         {:ok, [project | components]}
 
