@@ -13,6 +13,7 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
   @default_opts [
     output: @default_path,
     schema: @default_schema,
+    format: "xml",
     classification: @default_classification
   ]
 
@@ -33,6 +34,7 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
       project
     * `--schema` (`-s`): schema version to be used, defaults to
       "#{@default_schema}"
+    * `--format` (`-t`): output format: xml (default) or json
     * `--classification` (`-c`): the project classification, e.g. "application",
       "library", "framework"; defaults to "#{@default_classification}"
 
@@ -44,13 +46,22 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
     {opts, _args} =
       OptionParser.parse!(
         all_args,
-        aliases: [o: :output, f: :force, d: :dev, r: :recurse, s: :schema, c: :classification],
+        aliases: [
+          o: :output,
+          f: :force,
+          d: :dev,
+          r: :recurse,
+          s: :schema,
+          t: :format,
+          c: :classification
+        ],
         strict: [
           output: :string,
           force: :boolean,
           dev: :boolean,
           recurse: :boolean,
           schema: :string,
+          format: :string,
           classification: :string
         ]
       )
