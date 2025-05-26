@@ -16,19 +16,19 @@ defmodule SBoMTest do
     test "basic project" do
       Mix.Project.in_project(:sample1, "test/fixtures/sample1", fn _mod ->
         Mix.Task.rerun("deps.clean", ["--all"])
-        assert {:error, :unresolved_dependency} = SBoM.components_for_project()
+        assert {:error, :unresolved_dependency} = SBoM.components_for_project("application")
 
         Mix.Task.rerun("deps.get")
-        assert {:ok, list} = SBoM.components_for_project()
-        assert length(list) == 9
+        assert {:ok, list} = SBoM.components_for_project("application")
+        assert length(list) == 10
         assert Enum.find(list, &match?(%{name: "hackney"}, &1))
         assert Enum.find(list, &match?(%{name: "sweet_xml"}, &1))
         refute Enum.find(list, &match?(%{name: "ex_doc"}, &1))
         refute Enum.find(list, &match?(%{name: "meck"}, &1))
         refute Enum.find(list, &match?(%{name: "jason"}, &1))
 
-        assert {:ok, list} = SBoM.components_for_project(nil)
-        assert length(list) == 15
+        assert {:ok, list} = SBoM.components_for_project("application", nil)
+        assert length(list) == 16
         assert Enum.find(list, &match?(%{name: "hackney"}, &1))
         assert Enum.find(list, &match?(%{name: "sweet_xml"}, &1))
         assert Enum.find(list, &match?(%{name: "ex_doc"}, &1))
@@ -48,19 +48,19 @@ defmodule SBoMTest do
     test "project with path dependency" do
       Mix.Project.in_project(:with_path_dep, "test/fixtures/with_path_dep", fn _mod ->
         Mix.Task.rerun("deps.clean", ["--all"])
-        assert {:error, :unresolved_dependency} = SBoM.components_for_project()
+        assert {:error, :unresolved_dependency} = SBoM.components_for_project("application")
 
         Mix.Task.rerun("deps.get")
-        assert {:ok, list} = SBoM.components_for_project()
-        assert length(list) == 10
+        assert {:ok, list} = SBoM.components_for_project("application")
+        assert length(list) == 11
         assert Enum.find(list, &match?(%{name: "hackney"}, &1))
         assert Enum.find(list, &match?(%{name: "sweet_xml"}, &1))
         refute Enum.find(list, &match?(%{name: "ex_doc"}, &1))
         refute Enum.find(list, &match?(%{name: "meck"}, &1))
         assert Enum.find(list, &match?(%{name: "jason"}, &1))
 
-        assert {:ok, list} = SBoM.components_for_project(nil)
-        assert length(list) == 10
+        assert {:ok, list} = SBoM.components_for_project("application", nil)
+        assert length(list) == 11
         assert Enum.find(list, &match?(%{name: "hackney"}, &1))
         assert Enum.find(list, &match?(%{name: "sweet_xml"}, &1))
         refute Enum.find(list, &match?(%{name: "ex_doc"}, &1))

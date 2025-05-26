@@ -4,22 +4,24 @@ defmodule SBoM.CycloneDXTest do
 
   doctest SBoM.CycloneDX
 
+  @sample_component %{
+    type: "library",
+    name: "name",
+    version: "0.0.1",
+    purl: "pkg:hex/name@0.0.1",
+    licenses: ["Apache-2.0"]
+  }
+
   describe "bom" do
     test "serial number UUID generation" do
-      assert [] |> bom() |> to_string() =~
+      assert [@sample_component] |> bom() |> to_string() =~
                ~r(serialNumber="urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
     end
 
     test "component without license" do
       xml =
         [
-          %{
-            type: "library",
-            name: "name",
-            version: "0.0.1",
-            purl: "pkg:hex/name@0.0.1",
-            licenses: []
-          }
+          Map.put(@sample_component, :licenses, [])
         ]
         |> bom()
         |> to_string()
@@ -34,13 +36,7 @@ defmodule SBoM.CycloneDXTest do
     test "component with SPDX license" do
       xml =
         [
-          %{
-            type: "library",
-            name: "name",
-            version: "0.0.1",
-            purl: "pkg:hex/name@0.0.1",
-            licenses: ["Apache-2.0"]
-          }
+          @sample_component
         ]
         |> bom()
         |> to_string()
@@ -51,13 +47,7 @@ defmodule SBoM.CycloneDXTest do
     test "component with other license" do
       xml =
         [
-          %{
-            type: "library",
-            name: "name",
-            version: "0.0.1",
-            purl: "pkg:hex/name@0.0.1",
-            licenses: ["Some other license"]
-          }
+          Map.put(@sample_component, :licenses, ["Some other license"])
         ]
         |> bom()
         |> to_string()
@@ -68,16 +58,9 @@ defmodule SBoM.CycloneDXTest do
     test "component with hash" do
       xml =
         [
-          %{
-            type: "library",
-            name: "name",
-            version: "0.0.1",
-            purl: "pkg:hex/name@0.0.1",
-            licenses: [],
-            hashes: %{
-              "SHA-256" => "fdf843bca858203ae1de16da2ee206f53416bbda5dc8c9e78f43243de4bc3afe"
-            }
-          }
+          Map.put(@sample_component, :hashes, %{
+            "SHA-256" => "fdf843bca858203ae1de16da2ee206f53416bbda5dc8c9e78f43243de4bc3afe"
+          })
         ]
         |> bom()
         |> to_string()
