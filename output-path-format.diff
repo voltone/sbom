@@ -1,0 +1,86 @@
+diff --git a/lib/mix/tasks/sbom.cyclonedx.ex b/lib/mix/tasks/sbom.cyclonedx.ex
+index 5dc5141..117ebc1 100644
+--- a/lib/mix/tasks/sbom.cyclonedx.ex
++++ b/lib/mix/tasks/sbom.cyclonedx.ex
+@@ -7,13 +7,12 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
+   @schema_versions ["1.6", "1.5", "1.4", "1.3", "1.2", "1.1"]
+ 
+   @default_path "bom.xml"
++  @default_path_json "bom.json"
+   @default_schema "1.6"
+   @default_classification "application"
+ 
+   @default_opts [
+-    output: @default_path,
+     schema: @default_schema,
+-    format: "xml",
+     classification: @default_classification
+   ]
+ 
+@@ -34,7 +33,8 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
+       project
+     * `--schema` (`-s`): schema version to be used, defaults to
+       "#{@default_schema}"
+-    * `--format` (`-t`): output format: xml (default) or json
++    * `--format` (`-t`): output format: xml or json; defaults to "xml", unless
++      the output path ends with ".json"
+     * `--classification` (`-c`): the project classification, e.g. "application",
+       "library", "framework"; defaults to "#{@default_classification}"
+ 
+@@ -69,12 +69,12 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
+     opts =
+       @default_opts
+       |> Keyword.merge(opts)
++      |> update_output_path_and_format!()
+ 
+-    output_path = opts[:output]
+-    validate_schema(opts[:schema])
++    validate_schema!(opts[:schema])
+ 
++    output_path = opts[:output]
+     environment = (!opts[:dev] && :prod) || nil
+-
+     apps = Mix.Project.apps_paths()
+ 
+     if opts[:recurse] && apps do
+@@ -109,7 +109,39 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
+     Mix.raise("Can't continue due to errors on dependencies")
+   end
+ 
+-  defp validate_schema(schema) do
++  defp update_output_path_and_format!(opts) do
++    {output, format} =
++      case {opts[:output], opts[:format]} do
++        {nil, nil} ->
++          {@default_path, format_from_path(@default_path)}
++
++        {output, nil} ->
++          {output, format_from_path(output)}
++
++        {nil, "xml"} ->
++          {@default_path, "xml"}
++
++        {nil, "json"} ->
++          {@default_path_json, "json"}
++
++        {output, format} when format in ["xml", "json"] ->
++          {output, format}
++
++        {_, format} ->
++          Mix.raise("Unsupported output format: #{format}")
++      end
++
++    Keyword.merge(opts, output: output, format: format)
++  end
++
++  defp format_from_path(path) do
++    case Path.extname(path) do
++      ".json" -> "json"
++      _ -> "xml"
++    end
++  end
++
++  defp validate_schema!(schema) do
+     if schema not in @schema_versions do
+       shell = Mix.shell()
+ 
