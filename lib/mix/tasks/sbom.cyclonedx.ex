@@ -30,7 +30,7 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
       files for each application, rather than a single file for the entire
       project
     * `--schema` (`-s`): schema version to be used, defaults to
-      "@default_schema".
+      "#{@default_schema}".
 
   """
 
