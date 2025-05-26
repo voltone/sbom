@@ -61,9 +61,20 @@ defmodule SBoM do
   end
 
   defp component_from_project(opts, type) do
+    name =
+      case opts[:app] do
+        nil ->
+          # For umbrella apps, when the `:app` property is not set, fall back
+          # to the current working directory's name, for now
+          File.cwd!() |> Path.basename()
+
+        app ->
+          to_string(app)
+      end
+
     %{
       type: type,
-      name: to_string(opts[:app]),
+      name: name,
       version: opts[:version]
     }
   end
