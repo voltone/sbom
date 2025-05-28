@@ -4,6 +4,11 @@ defmodule SBoM.CycloneDXTest do
 
   doctest SBoM.CycloneDX
 
+  @opts [
+    schema: "1.6",
+    format: "xml"
+  ]
+
   @sample_component %{
     type: "library",
     name: "name",
@@ -14,7 +19,7 @@ defmodule SBoM.CycloneDXTest do
 
   describe "bom" do
     test "serial number UUID generation" do
-      assert [@sample_component] |> bom() |> to_string() =~
+      assert [@sample_component] |> bom(@opts) |> to_string() =~
                ~r(serialNumber="urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
     end
 
@@ -23,7 +28,7 @@ defmodule SBoM.CycloneDXTest do
         [
           Map.put(@sample_component, :licenses, [])
         ]
-        |> bom()
+        |> bom(@opts)
         |> to_string()
 
       assert xml =~ ~s(<component type="library">)
@@ -38,7 +43,7 @@ defmodule SBoM.CycloneDXTest do
         [
           @sample_component
         ]
-        |> bom()
+        |> bom(@opts)
         |> to_string()
 
       assert xml =~ ~s(<licenses><license><id>Apache-2.0</id></license></licenses>)
@@ -49,7 +54,7 @@ defmodule SBoM.CycloneDXTest do
         [
           Map.put(@sample_component, :licenses, ["Some other license"])
         ]
-        |> bom()
+        |> bom(@opts)
         |> to_string()
 
       assert xml =~ ~s(<licenses><license><name>Some other license</name></license></licenses>)
@@ -62,7 +67,7 @@ defmodule SBoM.CycloneDXTest do
             "SHA-256" => "fdf843bca858203ae1de16da2ee206f53416bbda5dc8c9e78f43243de4bc3afe"
           })
         ]
-        |> bom()
+        |> bom(@opts)
         |> to_string()
 
       assert xml =~
