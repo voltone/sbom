@@ -6,6 +6,13 @@ defmodule SBoM do
   alias SBoM.Purl
   alias SBoM.Cpe
 
+  @tool_version Mix.Project.config()[:version]
+
+  @doc """
+  Returns the version number of this tool.
+  """
+  def tool_version, do: @tool_version
+
   @doc """
   Builds a SBoM for the current Mix project. The result can be exported to
   CycloneDX XML format using the `SBoM.CycloneDX` module. Pass an environment
@@ -14,7 +21,7 @@ defmodule SBoM do
   Wrap the call to this function with `Mix.Project.in_project/3,4` to select a
   Mix project by path.
   """
-  def components_for_project(environment \\ :prod) do
+  def components_for_project(classification, environment \\ :prod) do
     Mix.Project.get!()
 
     {deps, not_ok} =
@@ -28,7 +35,10 @@ defmodule SBoM do
           |> Enum.map(&component_from_dep/1)
           |> Enum.reject(&is_nil/1)
 
-        {:ok, components}
+        project =
+          component_from_project(Mix.Project.config(), classification)
+
+        {:ok, [project | components]}
 
       _ ->
         {:error, :unresolved_dependency}
@@ -48,6 +58,25 @@ defmodule SBoM do
 
   defp ok?(dep) do
     Mix.Dep.ok?(dep) || Mix.Dep.compilable?(dep)
+  end
+
+  defp component_from_project(opts, type) do
+    name =
+      case opts[:app] do
+        nil ->
+          # For umbrella apps, when the `:app` property is not set, fall back
+          # to the current working directory's name, for now
+          File.cwd!() |> Path.basename()
+
+        app ->
+          to_string(app)
+      end
+
+    %{
+      type: type,
+      name: name,
+      version: opts[:version]
+    }
   end
 
   defp component_from_dep(%{opts: opts} = dep) do

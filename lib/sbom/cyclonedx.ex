@@ -10,10 +10,13 @@ defmodule SBoM.CycloneDX do
   components. Returns an `iolist`, which may be written to a file or IO device,
   or converted to a String using `IO.iodata_to_binary/1`
 
+  The first component in the list is assumed to be the top-level component
+  that the SBoM describes.
+
   If no serial number is specified a random UUID is generated.
   """
 
-  def bom(components, options \\ []) do
+  def bom([top_level_component | components], options \\ []) do
     schema = options[:schema]
 
     bom =
@@ -27,7 +30,7 @@ defmodule SBoM.CycloneDX do
         _ ->
           {:bom, bom_attributes(options, schema),
            [
-             metadata(options, schema),
+             metadata(top_level_component, options, schema),
              components(components, schema)
            ]}
       end
@@ -42,11 +45,19 @@ defmodule SBoM.CycloneDX do
     ]
   end
 
-  defp metadata(_options, _schema) do
+  defp metadata(component, _options, schema) do
     {:metadata, [],
      [
        {:timestamp, [], [[DateTime.utc_now() |> DateTime.to_iso8601()]]},
-       {:tools, [], [tool: [name: [["SBoM Mix task for Elixir"]]]]}
+       {:tools, [],
+        [
+          {:tool, [],
+           [
+             name: [["SBoM Mix task for Elixir"]],
+             version: [[SBoM.tool_version()]]
+           ]}
+        ]},
+       component(component, schema)
      ]}
   end
 

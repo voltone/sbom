@@ -8,10 +8,12 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
 
   @default_path "bom.xml"
   @default_schema "1.6"
+  @default_classification "application"
 
   @default_opts [
     output: @default_path,
-    schema: @default_schema
+    schema: @default_schema,
+    classification: @default_classification
   ]
 
   @moduledoc """
@@ -30,7 +32,9 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
       files for each application, rather than a single file for the entire
       project
     * `--schema` (`-s`): schema version to be used, defaults to
-      "#{@default_schema}".
+      "#{@default_schema}"
+    * `--classification` (`-c`): the project classification, e.g. "application",
+      "library", "framework"; defaults to "#{@default_classification}"
 
   """
 
@@ -40,13 +44,14 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
     {opts, _args} =
       OptionParser.parse!(
         all_args,
-        aliases: [o: :output, f: :force, d: :dev, r: :recurse, s: :schema],
+        aliases: [o: :output, f: :force, d: :dev, r: :recurse, s: :schema, c: :classification],
         strict: [
           output: :string,
           force: :boolean,
           dev: :boolean,
           recurse: :boolean,
-          schema: :string
+          schema: :string,
+          classification: :string
         ]
       )
 
@@ -69,7 +74,9 @@ defmodule Mix.Tasks.Sbom.Cyclonedx do
   end
 
   defp generate_bom(output_path, environment, opts) do
-    case SBoM.components_for_project(environment) do
+    classification = opts[:classification]
+
+    case SBoM.components_for_project(classification, environment) do
       {:ok, components} ->
         xml = SBoM.CycloneDX.bom(components, opts)
         create_file(output_path, xml, force: opts[:force])
